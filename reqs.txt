@@ -1,7 +1,8 @@
 Basic CTF functionality:
     2 flag
     cannot capture while home flag is away
-    exploit detection and prevention (speed-hacking, teleporting, aim-botting, instant-kill, wall-hacking, RAT-ing) (order priority of ease of detection, RAT-ing may be easier than I think if you do packet validations)
+    exploit detection and prevention (speed-hacking, teleporting, aim-botting, instant-kill, wall-hacking, RAT-ing)
+        (order priority of ease of detection, RAT-ing may be easier than I think if you do packet validations)
     GDPR (imagining we're holding a crap-ton of personally identifing information for this)
 
 Network:
