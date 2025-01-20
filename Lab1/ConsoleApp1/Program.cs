@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -123,7 +123,16 @@ namespace ConsoleApp1
             localSocket.SendTo(buffer, buffer.Length, SocketFlags.None, REndPoint);
             Console.WriteLine(Encoding.ASCII.GetString(buffer, 0, recv));
 
+/*
+while socket available
+    get sender(any)
+    get length from sender
+    get messag from bytes
+    emit to console 
 
+
+
+*/
             
         }
     }
