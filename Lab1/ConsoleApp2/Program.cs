@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,7 +15,13 @@ namespace Client
     {
         static void Main(string[] args)
         {
-            var tgtEndPoint = new IPEndPoint(IPAddress.Any, 0);
-        }
+            var tgtEndPoint = new IPEndPoint(IPAddress.Loopback, 9050);
+            var socket = new Socket(SocketType.Dgram, ProtocolType.Udp);
+
+            while (true)
+            {
+                var msg = Console.ReadLine() ?? "";
+                socket.SendTo(Encoding.ASCII.GetBytes(msg), tgtEndPoint);
+}
     }
 }
