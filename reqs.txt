@@ -1,0 +1,16 @@
+Basic CTF functionality:
+    2 flag
+    cannot capture while home flag is away
+    exploit detection and prevention (speed-hacking, teleporting, aim-botting, instant-kill, wall-hacking, RAT-ing) (order priority of ease of detection, RAT-ing may be easier than I think if you do packet validations)
+    GDPR (imagining we're holding a crap-ton of personally identifing information for this)
+
+Network:
+    IPv4/v6
+    Tgt is IPAddress:Port
+    Using Sockets API (Berkeley Sockets API, I/O interface)
+    TC/UD P (the actual protocol to talk)
+
+
+
+REPORT:
+    GDPR (good understanding of this probably a good idea for higher marks)
