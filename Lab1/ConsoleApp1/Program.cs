@@ -98,30 +98,58 @@ namespace ConsoleApp1
             
             */
 
+            string returnMessage = "Message Recived";
 
-            int recv;
-            byte[] buffer = new byte[1024];
+            
+            
 
             var localEndPoint = new IPEndPoint(IPAddress.Loopback, 9050);
 
-            var localSocket = new Socket(SocketType.Dgram, ProtocolType.Udp);
-
+            var localSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            localSocket.Blocking = true;
             localSocket.Bind(localEndPoint);
 
             Console.WriteLine("Socket Open");
 
             var remoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
             var REndPoint = (EndPoint)remoteEndPoint;
-
+            /*
             recv = localSocket.ReceiveFrom(buffer, ref REndPoint);
-
+            
             Console.WriteLine("Message recived from " + REndPoint.ToString() + " of size " + recv);
             Console.WriteLine(Encoding.ASCII.GetString(buffer, 0, recv));
-            string returnString = "Message recived and responded";
+            string returnString = "Message recived.";
             buffer = Encoding.ASCII.GetBytes(returnString);
 
             localSocket.SendTo(buffer, buffer.Length, SocketFlags.None, REndPoint);
             Console.WriteLine(Encoding.ASCII.GetString(buffer, 0, recv));
+            */
+
+            List<EndPoint> clients = new List<EndPoint>();
+
+            while (true)
+            {
+                while(localSocket.Available > 0)
+                {
+                    byte[] buffer = new byte[1024];
+                    var rmt = (EndPoint)new IPEndPoint(IPAddress.Any, 0);
+                    int len = localSocket.ReceiveFrom(buffer, ref rmt);
+                    if (!clients.Contains(rmt))
+                    {
+                        clients.Add(rmt);
+                        Console.WriteLine("New Client: " + rmt.ToString() + " connected!");
+                    }
+                    foreach (var c in clients)
+                    {
+                        if (c != rmt)
+                            localSocket.SendTo(buffer, c);
+                    }
+                    Console.WriteLine("| SENDER:" + rmt.ToString() 
+                        + "\t| UTC:" + DateTime.UtcNow + 
+                        "\n\t| MSG:" + Encoding.ASCII.GetString(buffer, 0, len) + "\n");
+                }
+                
+            }
 
 /*
 while socket available
