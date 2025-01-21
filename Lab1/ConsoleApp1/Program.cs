@@ -8,6 +8,7 @@ using System.Net.Sockets;
 using System.Net.Security;
 using System.Security.Cryptography;
 using System.Threading;
+using System.IO;
 
 
 
@@ -126,6 +127,7 @@ namespace ConsoleApp1
             */
 
             List<EndPoint> clients = new List<EndPoint>();
+            List<IPEndPoint> ipClients = new List<IPEndPoint>();
 
             while (true)
             {
@@ -133,20 +135,45 @@ namespace ConsoleApp1
                 {
                     byte[] buffer = new byte[1024];
                     var rmt = (EndPoint)new IPEndPoint(IPAddress.Any, 0);
-                    int len = localSocket.ReceiveFrom(buffer, ref rmt);
+                    int len = 0;
+                    try
+                    {
+                        len = localSocket.ReceiveFrom(buffer, ref rmt);
                     if (!clients.Contains(rmt))
                     {
                         clients.Add(rmt);
+                        string connectionMsg = "Connected to: " + localEndPoint.ToString();
                         Console.WriteLine("New Client: " + rmt.ToString() + " connected!");
+                        try { localSocket.SendTo(Encoding.ASCII.GetBytes(connectionMsg), rmt); }
+                        catch (Exception e) {Console.WriteLine(e.ToString());}
                     }
+                    }
+                    catch (Exception e)
+                    {
+                        len = 0;
+                        Console.WriteLine("Someone disconected");
+                        Console.WriteLine(e.ToString());
+                        clients.Remove(rmt);
+                    }
+
                     foreach (var c in clients)
                     {
                         if (c != rmt)
                             localSocket.SendTo(buffer, c);
                     }
+                    MemoryStream ms = new MemoryStream(buffer);
+                    BinaryReader br = new BinaryReader(ms);
                     Console.WriteLine("| SENDER:" + rmt.ToString() 
                         + "\t| UTC:" + DateTime.UtcNow + 
-                        "\n\t| MSG:" + Encoding.ASCII.GetString(buffer, 0, len) + "\n");
+                        "\n\t| TYPE:" + br.ReadByte() + 
+                        "\t| MSG: " + br.ReadString());
+
+                    Console.Write("USERLIST\n");
+                    foreach (var c in clients)
+                    {
+                        Console.WriteLine("IP:" + c.ToString());
+                        Console.WriteLine("-----------------------");
+                    }
                 }
                 
             }
