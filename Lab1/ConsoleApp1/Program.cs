@@ -12,11 +12,8 @@ using System.IO;
 
 
 
-namespace ConsoleApp1
+namespace Server
 {
-
-
-
 
     internal class Program
     {
@@ -31,29 +28,7 @@ namespace ConsoleApp1
         
         
         static void Main(string[] args)
-        {
-            /*
-            IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Loopback, 9050);
-            //var jackson = new IPEndPoint(IPAddress.Parse("194.66.32.10"), 9050);
-            var jackson = new IPEndPoint(IPAddress.Parse("10.1.134.27"), 40005);
-            
-
-
-            int recv = 0;
-            byte[] data = new byte[1024];
-            string hi = "IM YELLING BACK";
-            data = Encoding.ASCII.GetBytes(hi);
-            TimeSpan tickTime = new TimeSpan(500);
-            int tickCount = 0;
-            long frameSep = 166667; //ticks = 100 ns 10,000,000 = 1t/s 1,000,000 = 10t/s 500,000 = 20t/s 166,667 = 60t/s
-            long nextFrame = 0;
-
-            Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            socket.Bind(localEndPoint);
-            //var dataLength = socket.ReceiveFrom(data, ref remote);
-
-            //WriteLn("End");
-
+        { 
             /*
              * socket 1
              *  -> data to network
@@ -65,45 +40,6 @@ namespace ConsoleApp1
              */
 
 
-            /*
-            while (true)
-            {
-
-                long now = DateTime.Now.Ticks;
-                if (now >= nextFrame)
-                {
-                    nextFrame = ((now / frameSep) + 1) * frameSep;
-
-                    Console.Write("WE'RE SHOUTING INTO OUR OWN EAR\t | ");
-
-                    IPEndPoint remoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
-                    socket.SendTo(data, data.Length, SocketFlags.None, localEndPoint);
-                    EndPoint remote = (EndPoint)remoteEndPoint;
-                    recv = socket.ReceiveFrom(data, ref remote);
-                    
-                    //Server message
-                    Console.Write("Message from " + remote.ToString() + "\t | ");
-                    //data message back
-                    Console.Write(Encoding.ASCII.GetString(data, 0, recv) + "\t | ");
-                    //tracking
-                    Console.Write(tickCount++ + "\r");
-
-                    
-
-                }
-
-                
-            }
-            
-            
-            
-            */
-
-            string returnMessage = "Message Recived";
-
-            
-            
-
             var localEndPoint = new IPEndPoint(IPAddress.Loopback, 9050);
 
             var localSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
@@ -114,21 +50,57 @@ namespace ConsoleApp1
 
             var remoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
             var REndPoint = (EndPoint)remoteEndPoint;
-            /*
-            recv = localSocket.ReceiveFrom(buffer, ref REndPoint);
-            
-            Console.WriteLine("Message recived from " + REndPoint.ToString() + " of size " + recv);
-            Console.WriteLine(Encoding.ASCII.GetString(buffer, 0, recv));
-            string returnString = "Message recived.";
-            buffer = Encoding.ASCII.GetBytes(returnString);
-
-            localSocket.SendTo(buffer, buffer.Length, SocketFlags.None, REndPoint);
-            Console.WriteLine(Encoding.ASCII.GetString(buffer, 0, recv));
-            */
+           
 
             List<EndPoint> clients = new List<EndPoint>();
             List<IPEndPoint> ipClients = new List<IPEndPoint>();
+            
+            //connection/disconnection packets
 
+            List<Connection> connections = new List<Connection>();
+
+            //server ingests data
+
+            //determins who it's from
+
+            //sends it to that connection for processing
+
+            //send some auth back to that client
+
+            while(true)
+            {
+                {
+                    byte[] buffer = new byte[1024];
+                    var rmt = new IPEndPoint(IPAddress.Any, 0);
+                    EndPoint rmtEndPoint = rmt;
+                    int len = localSocket.ReceiveFrom(buffer, ref rmtEndPoint);
+                    rmt = (IPEndPoint)rmtEndPoint;
+                    bool found = false;
+
+                    for(int i = 0; i < connections.Count; i++) 
+                    {
+                        Connection c = connections[i];
+                        if (rmt == c.remote)
+                        {
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (!found)
+                    {
+                        connections.Add(new Connection(localEndPoint, rmt));
+                    }
+
+
+
+                }
+            }
+
+
+
+
+            /*
             while (true)
             {
                 while(localSocket.Available > 0)
@@ -136,9 +108,8 @@ namespace ConsoleApp1
                     byte[] buffer = new byte[1024];
                     var rmt = (EndPoint)new IPEndPoint(IPAddress.Any, 0);
                     int len = 0;
-                    try
-                    {
-                        len = localSocket.ReceiveFrom(buffer, ref rmt);
+                   
+                    len = localSocket.ReceiveFrom(buffer, ref rmt);
                     if (!clients.Contains(rmt))
                     {
                         clients.Add(rmt);
@@ -147,14 +118,10 @@ namespace ConsoleApp1
                         try { localSocket.SendTo(Encoding.ASCII.GetBytes(connectionMsg), rmt); }
                         catch (Exception e) {Console.WriteLine(e.ToString());}
                     }
-                    }
-                    catch (Exception e)
-                    {
-                        len = 0;
-                        Console.WriteLine("Someone disconected");
-                        Console.WriteLine(e.ToString());
-                        clients.Remove(rmt);
-                    }
+
+                    len = 0;
+                    Console.WriteLine("Someone disconected");
+                    clients.Remove(rmt);
 
                     foreach (var c in clients)
                     {

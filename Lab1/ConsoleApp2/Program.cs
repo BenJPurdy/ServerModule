@@ -21,20 +21,18 @@ namespace Client
         }
         static void Main(string[] args)
         {
-            
-            
 
             var tgtEndPoint = new IPEndPoint(IPAddress.Loopback, 9050);
-            var socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            var socket = new Socket(AddressFamily.InterNetwork,
+                SocketType.Dgram, ProtocolType.Udp);
             socket.ReceiveTimeout = 1000;
             socket.SendTimeout = 1000;
-
-
 
             byte[] buffer = new byte[1024];
             byte[] outBuffer = new byte[1024];
             int len = 0;
             var rmt = (EndPoint)new IPEndPoint(IPAddress.Any, 0);
+
             while (true)
             {
                 //while (socket.Available > 0)
