@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 
 namespace Server
 {
+    //connections are always FROM the server when dealing with local
+    //or remote perspectives
+    //
     internal class Connection
     {
         public Connection(IPEndPoint l, IPEndPoint r)
@@ -17,14 +20,22 @@ namespace Server
             remote = r;
         }
 
-        void Receive(byte[] data)
+        public void Receive(byte[] data)
         {
             Packet p = Packet.Deserialise(data);
+            
+            if (p is DataPacket d)
+            {
+                buffer = d.data;
+            }
+            
         }
 
-        void Send(Packet p)
+        public void Send(Packet p, ref Socket s)
         {
-
+            byte[] data;
+            p.Serialise(out data);
+            s.SendTo(data, remote);
         }
 
         
@@ -32,7 +43,7 @@ namespace Server
         public readonly IPEndPoint local;
         public readonly IPEndPoint remote;
 
-        byte[] buffer = new byte[1024];
+        public byte[] buffer = new byte[1024];
 
 
 
