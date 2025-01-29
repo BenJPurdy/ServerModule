@@ -11,7 +11,42 @@ Network:
     Using Sockets API (Berkeley Sockets API, I/O interface)
     TC/UD P (the actual protocol to talk)
 
+Basic Functionality Server Data:
+    Pickup Positions
+    Consubmable Positions
+    Flag Position    
+    Player Names/IDs
+    Player Teams
+    Player Stats:
+        Kills
+        Deaths
+        Damage
+        Flag pickups
+        Flag returns
+        Flag captures
+    
 
+
+Secure Server Data:
+    Pos-Pickup
+    Pos-Consumables
+
+
+Basic Functionality Packet Types:
+    EmptyPacket, //Client is here but there's no updates
+    MovePacket, //Pos Rot of the player, sent to the server to distribute to other players (and do exploit checks if possible)
+    PlayerInfo, //weapons (2 max), consumables, health, holdingFlag
+    ShootPacket, //The player sends shoot information to the server, to be distributed to the other players.
+    ThrowPacket, //The player has thrown a grenade, this information to be distributed to the other players.
+    FlagPacket, //Sent if the player is trying to pick up the flag (the client thinks it's close enough to the flag to pick it up),
+                // the server does a check with it's current data to ok or not the information)
+    FlagHoldingPacket, //Server ok's players tryPickup, which will then set the "holdingFlag" flag on that player,
+                      //which is sent to the clients to inform how the player is rendered
+    
+
+Secure Network Packet Types:
+    
 
 REPORT:
     GDPR (good understanding of this probably a good idea for higher marks)
+    Any unimplemented but useful stuff (secure server, exploit detection and prevention methods)

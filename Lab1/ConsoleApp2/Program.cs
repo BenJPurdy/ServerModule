@@ -8,6 +8,7 @@ using System.Net.Sockets;
 using System.Net.Security;
 using System.Security.Cryptography;
 using System.Threading;
+using Server;
 
 
 namespace Client
@@ -42,8 +43,8 @@ namespace Client
             socket.SendTo(connectData, tgtEndPoint);
 
             len = socket.ReceiveFrom(byteBuffer, SocketFlags.None, ref rmt);
-
-            while (true)
+            bool run = true;
+            while (run)
             {
                 //while (socket.Available > 0)
                 {
@@ -96,11 +97,15 @@ namespace Client
 
                         if (sendPacket is DisconnectPacket)
                         {
-                            Environment.Exit(0);
+                            run = false;
+                            break;
                         }
 
                     }
-
+                    if (!run)
+                    {
+                        break;
+                    }
                     len = socket.ReceiveFrom(byteBuffer, SocketFlags.None, ref rmt);
 
                 }

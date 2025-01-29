@@ -12,10 +12,11 @@ namespace Server
     {
         Connect,
         Disconnect,
-        Data
+        Data,
+
     }
 
-   
+
 
     public class Packet
     {
@@ -33,7 +34,8 @@ namespace Server
             bw.Write(client);
             if (this is ConnectPacket) { bw.Write((byte)PacketType.Connect); }
             else if (this is DisconnectPacket) { bw.Write((byte)(PacketType.Disconnect)); }
-            else if (this is DataPacket p) { 
+            else if (this is DataPacket p)
+            {
                 bw.Write((byte)PacketType.Data);
                 bw.Write(p.data.Length);
                 bw.Write(p.data);
@@ -41,7 +43,7 @@ namespace Server
             }
 
             outData = ms.ToArray();
-            
+
         }
 
         //deserialise (become debytes)
@@ -81,9 +83,9 @@ namespace Server
 
     }
 
-    public class  ConnectPacket : Packet
+    public class ConnectPacket : Packet
     {
-        
+
     }
 
     public class DisconnectPacket : Packet

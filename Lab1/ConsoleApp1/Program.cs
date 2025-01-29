@@ -84,6 +84,8 @@ namespace Server
                         bool found = false;
                         int index = 0;
 
+                        
+
                         for (int i = 0; i < connections.Count; i++)
                         {
                             Connection c = connections[i];
@@ -114,6 +116,10 @@ namespace Server
                            
                             
                             Console.WriteLine("New connection at " + index + ": " + connections[index].remote.ToString());
+                            Console.WriteLine("MMSG: ");
+                            Console.WriteLine(Encoding.Unicode.GetString(recieveBuffer));
+
+                           
                         }
 
                         Packet inPacket = Packet.Deserialise(recieveBuffer);
