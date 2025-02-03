@@ -31,9 +31,13 @@ public:
 
 	FSocket* socket;
 
+	
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	virtual void EndPlay(EEndPlayReason::Type) override;
+
 
 public:	
 	// Called every frame
@@ -58,8 +62,13 @@ public:
 
 	void Deserilaise(TArray<uint8_t>);
 
+	void addFloat(float);
+	void addVec3(FVector);
+
 	uint32_t client;
 	uint8_t type;
 	uint32_t length;
 	TArray<uint8_t> data;
 };
+
+static void sendData(ANetManager&, AActor&);
