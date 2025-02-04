@@ -18,6 +18,7 @@ public class script_ServerTest : MonoBehaviour
         IPEndPoint endpoint;
     }
 
+    
     static UdpState udpState;
     IPEndPoint endpoint;
     UdpClient udpClient = new UdpClient();
