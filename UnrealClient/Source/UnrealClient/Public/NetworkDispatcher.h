@@ -14,7 +14,8 @@ UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class UNREALCLIENT_API UNetworkDispatcher : public UActorComponent
 {
 	GENERATED_BODY()
-	AActor* manager;
+	ANetManager* manager;
+	AActor* owner;
 
 public:	
 	// Sets default values for this component's properties

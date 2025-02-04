@@ -50,6 +50,7 @@ void ANetManager::BeginPlay()
 	
 	sendAddr->SetIp(serverEndPoint.Value);
 	sendAddr->SetPort(port);
+	serverAddress = sendAddr;
 
 	int32_t dataSent;
 	//int32_t dataRecived;
@@ -75,7 +76,7 @@ void ANetManager::BeginPlay()
 // Called every frame
 void ANetManager::Tick(float DeltaTime)
 {
-	Super::Tick(DeltaTime);
+	//PRINT("OnTick");
 	uint32_t pendingData = 0;
 	int32_t readBytes = 0;
 	//uint8_t* inData;
@@ -86,10 +87,22 @@ void ANetManager::Tick(float DeltaTime)
 		socket->Recv(packetStream.GetData(), pendingData, readBytes);
 		Packet packet;
 		packet.Deserilaise(packetStream);
+		FString dataOut = FString(UTF8_TO_TCHAR(reinterpret_cast<const char*>(packet.data.GetData())));
 		//packet.data.ToString()
-		PRINT("Packet Recv");
+
+		UE_LOG(LogTemp, Warning, TEXT("Return Data: %s"), *dataOut);
+		
+		
 	}
 
+	Super::Tick(DeltaTime);
+}
+
+Packet::Packet()
+{
+	client = 0;
+	type = 2;
+	length = 0;
 }
 
 void Packet::Deserilaise(TArray<uint8_t> in)
@@ -102,12 +115,23 @@ void Packet::Deserilaise(TArray<uint8_t> in)
 	reader.Serialize(data.GetData(), length);
 }
 
+uint32_t Packet::serialise(TArray<uint8_t>& out)
+{
+	FMemoryWriter writer(out);
+	writer.Serialize(&client, sizeof(client));
+	writer.Serialize(&type, sizeof(type));
+	writer.Serialize(&length, sizeof(length));
+	writer.Serialize(data.GetData(), length);
+	return (uint32_t)(sizeof(client) + sizeof(type) + sizeof(length) + length);
+}
+
 void Packet::addFloat(float v)
 {
 	std::array<uint8_t, 4> bytes = std::bit_cast<std::array<uint8_t, 4>>(v);
 	for (auto i : bytes)
 	{
 		data.Add(i);
+		length += sizeof(uint8_t);
 	}
 }
 
@@ -116,13 +140,8 @@ void Packet::addVec3(FVector v)
 	addFloat(v.X);
 	addFloat(v.Y);
 	addFloat(v.Z);
-}
-
-static void sendData(ANetManager& network, AActor& entity)
-{
-	Packet packet;
-	auto position = entity.GetActorTransform().GetLocation();
-	packet.addVec3(position);
 	
 }
+
+
 

@@ -50,3 +50,12 @@ Secure Network Packet Types:
 REPORT:
     GDPR (good understanding of this probably a good idea for higher marks)
     Any unimplemented but useful stuff (secure server, exploit detection and prevention methods)
+
+
+playerDirection()
+maxAngle
+
+dir + rand(maxAngle)
+
+
+

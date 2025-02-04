@@ -30,6 +30,7 @@ public:
 	TSharedPtr<FInternetAddr> serverAddress;
 
 	FSocket* socket;
+	
 
 	
 
@@ -55,12 +56,15 @@ public:
 		Data,
 	};
 
+	Packet();
+
 	void Serialise(TArray<uint8_t>* out)
 	{
 		FMemoryWriter writer(*out);
 	}
 
 	void Deserilaise(TArray<uint8_t>);
+	uint32_t serialise(TArray<uint8_t>&);
 
 	void addFloat(float);
 	void addVec3(FVector);
@@ -71,4 +75,21 @@ public:
 	TArray<uint8_t> data;
 };
 
-static void sendData(ANetManager&, AActor&);
+static void sendData(ANetManager& network, AActor& entity)
+{
+	
+	Packet packet;
+	auto position = entity.GetActorTransform().GetLocation();
+	auto rotation = entity.GetActorTransform().GetRotation();
+	auto rotAsVec3 = rotation.Vector();
+	packet.addVec3(position);
+	packet.addVec3(rotAsVec3);
+	TArray<uint8_t> toSend;
+	uint32_t size = packet.serialise(toSend);
+	int32_t sent = 0;
+	network.socket->SendTo(toSend.GetData(), size, sent, *network.serverAddress);
+	//UE_LOG(LogTemp, Warning, TEXT("Sent Data"));
+	
+	
+
+}

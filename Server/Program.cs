@@ -9,11 +9,27 @@ using System.Net.Security;
 using System.Security.Cryptography;
 using System.Threading;
 using System.IO;
+using System.Numerics;
 
 
 
 namespace Server
 {
+
+    public struct Vec3
+    {
+        public float x, y, z;
+
+        public void Print()
+        {
+            Console.Write(x + ", " +  y + ", " + z + "\t");
+        }
+
+        void Read()
+        {
+
+        }
+    }
 
     internal class Program
     {
@@ -141,6 +157,27 @@ namespace Server
 
                             //Console.WriteLine(authPacket.data);
                         }
+                        if (inPacket is DataPacket d)
+                        {
+                            MemoryStream ms = new MemoryStream(d.data);
+                            BinaryReader br = new BinaryReader(ms);
+
+                            Vec3 p = new Vec3();
+                            p.x = br.ReadSingle();
+                            p.y = br.ReadSingle();
+                            p.z = br.ReadSingle();
+
+                            Vec3 r = new Vec3();
+                            r.x = br.ReadSingle();
+                            r.y = br.ReadSingle();
+                            r.z = br.ReadSingle();
+
+                            p.Print();
+                            r.Print();
+                            Console.Write("\n");
+
+
+                        }
                         if (connections[index] != null)
                         {
                             connections[index].Send(authPacket, ref localSocket);
@@ -212,5 +249,8 @@ namespace Server
 
             }
         }
+
+        
+        
     }
 }
