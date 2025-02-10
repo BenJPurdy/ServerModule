@@ -1,7 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
+//using Unity.VisualScripting;
 using UnityEngine;
+
 
 public class PlayerController : MonoBehaviour
 {
@@ -17,10 +18,11 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         body = GetComponent<CapsuleCollider>();
-        transform.Find("Head").GetComponent<SphereCollider>();
+        transform.Find("PlayerModel").Find("Head").GetComponent<SphereCollider>();
         controller = GetComponent<CharacterController>();
-        camera = FindObjectOfType<Camera>();
-        
+        camera = Camera.FindObjectByType()[0];
+
+        Debug.Log(camera);
 
 
     }
@@ -34,8 +36,11 @@ public class PlayerController : MonoBehaviour
         bool vert = Input.GetKeyDown(KeyCode.Space);
         
         Vector3 delta = new Vector3(r, 0, f);
-        Debug.DrawLine(transform.position, transform.position - new Vector3(0, 1.0f, 0), Color.red, Time.deltaTime, false);
-        bool isGrounded = Physics.SphereCast(transform.position, 1.0f, Vector3.down, out _, 0.5f);
+        Debug.DrawLine(transform.position + (0.45f * Vector3.up), transform.position + (0.6f * Vector3.up) - (0.5f * Vector3.up), Color.red, Time.deltaTime, false);
+        bool isGrounded = Physics.SphereCast(transform.position + (0.5f * Vector3.up), 
+            0.5f,
+            Vector3.down, out var h, 0.12f
+            );
         
         if (!isGrounded) { falling = true; }
         else { falling = false; verticalVelocity = 0.0f; }
@@ -48,10 +53,10 @@ public class PlayerController : MonoBehaviour
         {
             verticalVelocity = 2.5f;
         }
-
-        Debug.Log(isGrounded);
+        
+        //Debug.Log(isGrounded);
         delta.y = verticalVelocity;
-
+        
         controller.Move(delta * 10 * Time.deltaTime);
         
         
