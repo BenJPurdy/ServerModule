@@ -42,6 +42,7 @@ namespace Server
 
         public readonly IPEndPoint local;
         public readonly IPEndPoint remote;
+        public UInt32 clientID;
 
         public byte[] buffer = new byte[1024];
 

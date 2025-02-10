@@ -24,6 +24,7 @@ namespace Server
         //the client wrt the packet is the client itself, not the packet reciever
         //client id can be assigned either by the client or by the server
         public uint client;
+        public uint length;
 
         //serialise (become bytes)
         public void Serialise(out byte[] outData)
@@ -95,7 +96,6 @@ namespace Server
 
     public class DataPacket : Packet
     {
-        public UInt32 length;
         public byte[] data = new byte[1024];
     }
 
