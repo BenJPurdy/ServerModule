@@ -1,0 +1,7 @@
+C:\Users\purdyb\Documents\GitHub\6018-MAKING-A-SERVER\Lab1\ConsoleApp1\bin\Release\ConsoleApp1.exe.config
+C:\Users\purdyb\Documents\GitHub\6018-MAKING-A-SERVER\Lab1\ConsoleApp1\bin\Release\ConsoleApp1.exe
+C:\Users\purdyb\Documents\GitHub\6018-MAKING-A-SERVER\Lab1\ConsoleApp1\bin\Release\ConsoleApp1.pdb
+C:\Users\purdyb\Documents\GitHub\6018-MAKING-A-SERVER\Lab1\ConsoleApp1\obj\Release\Server.csproj.AssemblyReference.cache
+C:\Users\purdyb\Documents\GitHub\6018-MAKING-A-SERVER\Lab1\ConsoleApp1\obj\Release\Server.csproj.CoreCompileInputs.cache
+C:\Users\purdyb\Documents\GitHub\6018-MAKING-A-SERVER\Lab1\ConsoleApp1\obj\Release\ConsoleApp1.exe
+C:\Users\purdyb\Documents\GitHub\6018-MAKING-A-SERVER\Lab1\ConsoleApp1\obj\Release\ConsoleApp1.pdb
