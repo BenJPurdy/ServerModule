@@ -9,11 +9,16 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+
+
     enum PacketType
     {
         Connect,
         Disconnect,
         Data,
+        Transform,
+        ReqestJoin,
+        UniqueID,
 
     }
 
@@ -48,42 +53,66 @@ using System.Threading.Tasks;
 
         }
 
-        //deserialise (become debytes)
-        public static Packet Deserialise(byte[] indata)
+    //deserialise (become debytes)
+    public static Packet Deserialise(byte[] indata)
+    {
+        //when the binary reader reads a value from the memorystream it moves to <T> bytes along the stream
+        MemoryStream ms = new MemoryStream(indata);
+        BinaryReader bw = new BinaryReader(ms);
+        var client = bw.ReadUInt32();
+        byte type = bw.ReadByte();
+        switch ((PacketType)type)
         {
+            case PacketType.Connect:
+                return new ConnectPacket
+                {
+                    client = client,
+                };
 
-            MemoryStream ms = new MemoryStream(indata);
-            BinaryReader bw = new BinaryReader(ms);
-            var client = bw.ReadUInt32();
-            byte type = bw.ReadByte();
-            switch ((PacketType)type)
-            {
-                case PacketType.Connect:
-                    return new ConnectPacket
+            case PacketType.Disconnect:
+                return new DisconnectPacket
+                {
+                    client = client,
+                };
+            case PacketType.Data:
+                UInt32 l = bw.ReadUInt32();
+                return new DataPacket
+                {
+                    client = client,
+                    length = l,
+                    data = bw.ReadBytes((int)l)
+                };
+            case PacketType.Transform:
+                uint e = bw.ReadUInt32();
+                return new TransformPacket
+                {
+                    client = client,
+                    entity = e,
+                    transformX = bw.ReadSingle(),
+                    transformY = bw.ReadSingle(),
+                    transformZ = bw.ReadSingle(),
+                    rotationX = bw.ReadSingle(),
+                    rotationY = bw.ReadSingle(),
+                    rotationZ = bw.ReadSingle(),
+                    padding = bw.ReadUInt32()
+                };
+            case PacketType.UniqueID:
+                {
+                    uint id = bw.ReadUInt32();
+                    return new UniqueID
                     {
                         client = client,
+                        unique = id
                     };
+                }
 
-                case PacketType.Disconnect:
-                    return new DisconnectPacket
-                    {
-                        client = client,
-                    };
-                case PacketType.Data:
-                    UInt32 l = bw.ReadUInt32();
-                    return new DataPacket
-                    {
-                        client = client,
-                        length = l,
-                        data = bw.ReadBytes((int)l)
-                    };
 
-            }
-
-            return null;
         }
 
+        return null;
     }
+
+}
 
     public class ConnectPacket : Packet
     {
@@ -100,6 +129,29 @@ using System.Threading.Tasks;
         
         public byte[] data = new byte[1024];
     }
+
+    public class TransformPacket : Packet
+    {
+        public uint entity;
+        public float transformX;
+        public float transformY;
+        public float transformZ;
+    
+        public float rotationX;
+        public float rotationY;
+        public float rotationZ;
+        public uint padding;
+    }
+
+public class RequestJoin : Packet
+{
+
+}
+
+public class UniqueID : Packet
+{
+    public uint unique;
+}
 
 
 

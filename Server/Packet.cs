@@ -13,6 +13,9 @@ namespace Server
         Connect,
         Disconnect,
         Data,
+        Transform,
+        ReqestJoin,
+        UniqueID,
 
     }
 
@@ -35,14 +38,28 @@ namespace Server
             bw.Write(client);
             if (this is ConnectPacket) { bw.Write((byte)PacketType.Connect); }
             else if (this is DisconnectPacket) { bw.Write((byte)(PacketType.Disconnect)); }
-            else if (this is DataPacket p)
+            else if (this is DataPacket p0)
             {
                 bw.Write((byte)PacketType.Data);
-                bw.Write(p.data.Length);
-                bw.Write(p.data);
+                bw.Write(p0.data.Length);
+                bw.Write(p0.data);
 
             }
+            else if (this is TransformPacket p1)
+            {
+                bw.Write((byte)PacketType.Transform);
+                bw.Write(32);
+                bw.Write(p1.entity);
+                bw.Write(p1.transformX);
+                bw.Write(p1.transformY);
+                bw.Write(p1.transformZ);
 
+                bw.Write(p1.rotationX);
+                bw.Write(p1.rotationY);
+                bw.Write(p1.rotationZ);
+                bw.Write(p1.padding);
+
+            }
             outData = ms.ToArray();
 
         }
@@ -50,7 +67,7 @@ namespace Server
         //deserialise (become debytes)
         public static Packet Deserialise(byte[] indata)
         {
-
+            //when the binary reader reads a value from the memorystream it moves to <T> bytes along the stream
             MemoryStream ms = new MemoryStream(indata);
             BinaryReader bw = new BinaryReader(ms);
             var client = bw.ReadUInt32();
@@ -76,14 +93,35 @@ namespace Server
                         length = l,
                         data = bw.ReadBytes((int)l)
                     };
+                case PacketType.Transform:
+                    uint e = bw.ReadUInt32();
+                    return new TransformPacket
+                    {
+                        client = client,
+                        entity = e,
+                        transformX = bw.ReadSingle(),
+                        transformY = bw.ReadSingle(),
+                        transformZ = bw.ReadSingle(),
+                        rotationX = bw.ReadSingle(),
+                        rotationY = bw.ReadSingle(),
+                        rotationZ = bw.ReadSingle(),
+                        padding = bw.ReadUInt32()
+                    };
+                case PacketType.UniqueID:
+
+                    uint id = bw.ReadUInt32();
+                    return new UniqueID
+                    {
+                        client = client,
+                        unique = id
+                    };
 
             }
 
             return null;
+
         }
-
     }
-
     public class ConnectPacket : Packet
     {
 
@@ -92,6 +130,29 @@ namespace Server
     public class DisconnectPacket : Packet
     {
 
+    }
+
+    public class TransformPacket : Packet
+    {
+        public uint entity;
+        public float transformX;
+        public float transformY;
+        public float transformZ;
+
+        public float rotationX;
+        public float rotationY;
+        public float rotationZ;
+        public uint padding;
+    }
+
+    public class RequestID : Packet
+    {
+
+    }
+
+    public class UniqueID : Packet
+    {
+        public uint unique;
     }
 
     public class DataPacket : Packet

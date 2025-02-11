@@ -6,6 +6,8 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+
+
     CapsuleCollider body;
     SphereCollider head;
     CharacterController controller;
@@ -20,7 +22,7 @@ public class PlayerController : MonoBehaviour
         body = GetComponent<CapsuleCollider>();
         transform.Find("PlayerModel").Find("Head").GetComponent<SphereCollider>();
         controller = GetComponent<CharacterController>();
-        camera = Camera.FindObjectByType()[0];
+        camera = (Camera)Camera.FindObjectOfType(typeof(Camera));
 
         Debug.Log(camera);
 
@@ -58,6 +60,9 @@ public class PlayerController : MonoBehaviour
         delta.y = verticalVelocity;
         
         controller.Move(delta * 10 * Time.deltaTime);
+
+       // Packet p = new DataPacket();
+
         
         
         

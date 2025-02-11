@@ -175,9 +175,9 @@ namespace Server
                             p.Print();
                             r.Print();
                             Console.Write("\n");
-
-
                         }
+
+
                         if (connections[index] != null)
                         {
                             connections[index].Send(authPacket, ref localSocket);

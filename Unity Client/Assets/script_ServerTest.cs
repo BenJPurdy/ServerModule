@@ -8,6 +8,8 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
 using UnityEditor.PackageManager;
 using System;
+using UnityEditor;
+using System.Security.Cryptography;
 
 public class NetworkManager : MonoBehaviour
 {
@@ -20,6 +22,8 @@ public class NetworkManager : MonoBehaviour
 
     byte[] receivedData;
     //bool badPacket;
+
+    public static List<GameObject> networkObjects;
     
     static UdpState udpState;
     IPEndPoint endpoint;
@@ -38,8 +42,33 @@ public class NetworkManager : MonoBehaviour
         byte[] buff = Encoding.ASCII.GetBytes(msg);
         udpClient.Send(buff, buff.Length);
 
+        foreach (var obj in networkObjects)
+        {
+            RequestJoin join = new RequestJoin();
+            byte[] joinBytes;
+            join.Serialise(out joinBytes);
+            udpClient.Send(joinBytes, joinBytes.Length);
+            bool recivedPacket = false;
+            uint newID = 0;
+            while (!recivedPacket)
+            {
+                byte[] packetData;
+                packetData = udpClient.Receive(ref remote);
+                Packet p = Packet.Deserialise(packetData);
+                if (p is UniqueID p1)
+                {
+                    newID = p1.unique;
+                    recivedPacket = true;
+                }
+            }
+           obj.GetComponent<NetworkGameObject>().networkID = newID;
+            
+
+        }
+
         udpClient.Client.Blocking = false;
         //udpClient.BeginReceive(ReceiveAsyncCallback, udpState);
+    
     }
 
     // Update is called once per frame
@@ -63,6 +92,10 @@ public class NetworkManager : MonoBehaviour
             if (p == null)
             {
                 continue;
+            }
+            if (p is TransformPacket)
+            {
+
             }
 
         }
