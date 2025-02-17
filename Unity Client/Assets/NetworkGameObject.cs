@@ -6,7 +6,7 @@ public class NetworkGameObject : MonoBehaviour
 {
     public bool isLocal;
     public uint networkID = 0;
-    uint localID = 0;
+    public uint localID = 0;
     static uint currentLocalID = 0;
 
     // Start is called before the first frame update

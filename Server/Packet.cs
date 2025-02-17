@@ -48,7 +48,7 @@ namespace Server
             else if (this is TransformPacket p1)
             {
                 bw.Write((byte)PacketType.Transform);
-                bw.Write(32);
+                bw.Write(32); //length
                 bw.Write(p1.entity);
                 bw.Write(p1.transformX);
                 bw.Write(p1.transformY);
@@ -59,6 +59,11 @@ namespace Server
                 bw.Write(p1.rotationZ);
                 bw.Write(p1.padding);
 
+            }
+            else if (this is UniqueID uID)
+            {
+                bw.Write((byte)PacketType.UniqueID);
+                bw.Write(uID.unique);
             }
             outData = ms.ToArray();
 
@@ -153,6 +158,12 @@ namespace Server
     public class UniqueID : Packet
     {
         public uint unique;
+
+        public UniqueID() { }
+        public UniqueID(uint id)
+        {
+            unique = id;
+        }
     }
 
     public class DataPacket : Packet

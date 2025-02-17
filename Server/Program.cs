@@ -10,6 +10,7 @@ using System.Security.Cryptography;
 using System.Threading;
 using System.IO;
 using System.Numerics;
+using System.Diagnostics;
 
 
 
@@ -41,7 +42,7 @@ namespace Server
 
         //can use IPAddress.Parse("address_here") to create an IPAddress object for any address)
         //loopback goes to 127.0.0.1 (me, this machine, local address)
-
+       
 
         static void Main(string[] args)
         {
@@ -79,6 +80,8 @@ namespace Server
             //connection/disconnection packets
 
             List<Connection> connections = new List<Connection>();
+            uint UUID = 0;
+
 
             //server ingests data
 
@@ -90,106 +93,101 @@ namespace Server
 
             while (true)
             {
+                
+                while (localSocket.Available > 0)
                 {
-                    while (localSocket.Available > 0)
+                    byte[] recieveBuffer = new byte[1024];
+                    var rmt = new IPEndPoint(IPAddress.Any, 0); //the endpoint data comes in to (refered to as the client)
+                    EndPoint rmtEndPoint = rmt;
+                    int len = localSocket.ReceiveFrom(recieveBuffer, ref rmtEndPoint);
+                    rmt = (IPEndPoint)rmtEndPoint;
+                    bool found = false;
+                    int index = 0;
+
+                    
+
+                    for (int i = 0; i < connections.Count; i++)
                     {
-                        byte[] recieveBuffer = new byte[1024];
-                        var rmt = new IPEndPoint(IPAddress.Any, 0);
-                        EndPoint rmtEndPoint = rmt;
-                        int len = localSocket.ReceiveFrom(recieveBuffer, ref rmtEndPoint);
-                        rmt = (IPEndPoint)rmtEndPoint;
-                        bool found = false;
-                        int index = 0;
+                        Connection c = connections[i];
+                        if (c == null)
+                        {
+                            index = i;
+                            break;
+                        }
+                        if (rmt.Equals(c.remote))
+                        {
+                            found = true;
+                            index = i;
+                            break;
+                        }
+                        index = i+1;
+                    }
 
+                    if (!found)
+                    {
+                        if (connections.Count > index && connections[index] == null)
+                        {
+                            connections[index] = new Connection(localEndPoint, rmt);
+                        }
+                        else
+                        {
+                            connections.Add(new Connection(localEndPoint, rmt));
+                        }
+                       
                         
+                        Console.WriteLine("New connection at " + index + ": " + connections[index].remote.ToString());
+                        Console.WriteLine("MSG: ");
+                        Console.WriteLine(Encoding.Unicode.GetString(recieveBuffer));
 
+                       
+                    }
+
+                    Packet inPacket = Packet.Deserialise(recieveBuffer);
+                    if (inPacket == null)
+                    {
+                        Console.WriteLine("Data in failed");
+                    }
+                    if (inPacket is DisconnectPacket)
+                    {
                         for (int i = 0; i < connections.Count; i++)
                         {
-                            Connection c = connections[i];
-                            if (c == null)
                             {
-                                index = i;
-                                break;
-                            }
-                            if (rmt.Equals(c.remote))
-                            {
-                                found = true;
-                                index = i;
-                                break;
-                            }
-                            index = i+1;
-                        }
-
-                        if (!found)
-                        {
-                            if (connections.Count > index && connections[index] == null)
-                            {
-                                connections[index] = new Connection(localEndPoint, rmt);
-                            }
-                            else
-                            {
-                                connections.Add(new Connection(localEndPoint, rmt));
-                            }
-                           
-                            
-                            Console.WriteLine("New connection at " + index + ": " + connections[index].remote.ToString());
-                            Console.WriteLine("MSG: ");
-                            Console.WriteLine(Encoding.Unicode.GetString(recieveBuffer));
-
-                           
-                        }
-
-                        Packet inPacket = Packet.Deserialise(recieveBuffer);
-                        if (inPacket is DisconnectPacket)
-                        {
-                            for (int i = 0; i < connections.Count; i++)
-                            {
+                                Connection c = connections[i];
+                                if (c == null) continue;
+                                if (c.remote.Equals(rmt))
                                 {
-                                    Connection c = connections[i];
-                                    if (c == null) continue;
-                                    if (c.remote.Equals(rmt))
-                                    {
-                                        Console.WriteLine("Removed " + c.remote.ToString() + " from connections");
-                                        connections[i] = null;
-                                    }
+                                    Console.WriteLine("Removed " + c.remote.ToString() + " from connections");
+                                    connections[i] = null;
                                 }
                             }
-
-                            //Console.WriteLine(authPacket.data);
-                        }
-                        if (inPacket is DataPacket d)
-                        {
-                            MemoryStream ms = new MemoryStream(d.data);
-                            BinaryReader br = new BinaryReader(ms);
-
-                            Vec3 p = new Vec3();
-                            p.x = br.ReadSingle();
-                            p.y = br.ReadSingle();
-                            p.z = br.ReadSingle();
-
-                            Vec3 r = new Vec3();
-                            r.x = br.ReadSingle();
-                            r.y = br.ReadSingle();
-                            r.z = br.ReadSingle();
-
-                            p.Print();
-                            r.Print();
-                            Console.Write("\n");
                         }
 
-
-                        if (connections[index] != null)
-                        {
-                            connections[index].Send(authPacket, ref localSocket);
-                        }
-
-                        found = false;
+                        //Console.WriteLine(authPacket.data);
+                    }
+                    if (inPacket is TransformPacket t)
+                    {
+                        Console.WriteLine($"{t.transformX}, {t.transformY}, {t.transformZ}, {t.rotationX}, {t.rotationY}, {t.rotationZ}");
+                    }
+                    if (inPacket is RequestID id)
+                    {
+                        Console.WriteLine("Data is request ID packet");
+                        connections[index].Send(new UniqueID(++UUID), ref localSocket);
+                    }
+                    if (inPacket is DataPacket d)
+                    {
+                        Console.WriteLine(d.data);
 
                     }
+
+
+                    //if (connections[index] != null)
+                    //{
+                    //    connections[index].Send(authPacket, ref localSocket);
+                    //}
+
+                    found = false;
+
                 }
-
-
-
 
                 /*
                 while (true)
@@ -236,21 +234,28 @@ namespace Server
 
                 }
 
-    /*
-    while socket available
-        get sender(any)
-        get length from sender
-        get messag from bytes
-        emit to console 
+                /*
+                while socket available
+                    get sender(any)
+                    get length from sender
+                    get messag from bytes
+                    emit to console 
 
 
 
-    */
-
+                */
             }
         }
 
-        
+
+        Connection findClient(List<Connection> connections, UInt32 client)
+        {
+            for (var i = 0; i < connections.Count; i++)
+            {
+
+            }
+            return null;
+        }
         
     }
 }

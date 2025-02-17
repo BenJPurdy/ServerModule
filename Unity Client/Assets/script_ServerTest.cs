@@ -22,8 +22,11 @@ public class NetworkManager : MonoBehaviour
 
     byte[] receivedData;
     //bool badPacket;
+    
+    public static List<GameObject> networkObjects = new();
 
-    public static List<GameObject> networkObjects;
+    [SerializeField]
+    GameObject[] gameObjects = new GameObject[10];
     
     static UdpState udpState;
     IPEndPoint endpoint;
@@ -35,39 +38,55 @@ public class NetworkManager : MonoBehaviour
         endpoint = new IPEndPoint(IPAddress.Loopback, 9050);
         remote = new IPEndPoint(IPAddress.Any, 0);
         udpClient.Client.Blocking = true;
+        udpClient.Client.ReceiveTimeout = 500;
         udpClient.Connect(endpoint);
         Debug.Log("Client Complete");
-
+        DataPacket connectData = new DataPacket();
         string msg = "UNITY CLIENT CONNECTING...";
-        byte[] buff = Encoding.ASCII.GetBytes(msg);
-        udpClient.Send(buff, buff.Length);
+        connectData.data = Encoding.ASCII.GetBytes(msg);
+        byte[] buff;
+        connectData.Serialise(out buff);
+        udpClient.Send(buff, buff.Length, endpoint);
 
+        
         foreach (var obj in networkObjects)
         {
+            if (!obj.gameObject.GetComponent<NetworkGameObject>().isLocal) { continue; }
             RequestJoin join = new RequestJoin();
             byte[] joinBytes;
             join.Serialise(out joinBytes);
-            udpClient.Send(joinBytes, joinBytes.Length);
+            //udpClient.Send(joinBytes, joinBytes.Length);
             bool recivedPacket = false;
             uint newID = 0;
+            int attempts = 0;
             while (!recivedPacket)
             {
+                udpClient.Send(joinBytes, joinBytes.Length);
+                attempts++;
+                if (attempts >= 4) { Debug.Log("Did not recive a packet from the server");  break; }
                 byte[] packetData;
-                packetData = udpClient.Receive(ref remote);
-                Packet p = Packet.Deserialise(packetData);
-                if (p is UniqueID p1)
+                try
                 {
-                    newID = p1.unique;
-                    recivedPacket = true;
+                    packetData = udpClient.Receive(ref remote);
+                    Packet p = Packet.Deserialise(packetData);
+                    if (p is UniqueID p1)
+                    {
+                        newID = p1.unique;
+                        recivedPacket = true;
+                    }
                 }
+                catch { Debug.Log($"Failed to recive data from the remote for {obj.name}"); }
+                
             }
-           obj.GetComponent<NetworkGameObject>().networkID = newID;
-            
-
+            obj.GetComponent<NetworkGameObject>().networkID = newID;
         }
 
         udpClient.Client.Blocking = false;
         //udpClient.BeginReceive(ReceiveAsyncCallback, udpState);
+        for (int i = 0; i < networkObjects.Count; i++)
+        {
+            gameObjects[i] = networkObjects[i];
+        }
     
     }
 
