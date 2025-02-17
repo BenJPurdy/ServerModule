@@ -46,7 +46,7 @@ public class NetworkManager : MonoBehaviour
         connectData.data = Encoding.ASCII.GetBytes(msg);
         byte[] buff;
         connectData.Serialise(out buff);
-        udpClient.Send(buff, buff.Length, endpoint);
+        udpClient.Send(buff, buff.Length);
 
         
         foreach (var obj in networkObjects)
@@ -63,11 +63,16 @@ public class NetworkManager : MonoBehaviour
             {
                 udpClient.Send(joinBytes, joinBytes.Length);
                 attempts++;
-                if (attempts >= 4) { Debug.Log("Did not recive a packet from the server");  break; }
+                if (attempts > 4) { Debug.Log("Did not recive a packet from the server");  break; }
                 byte[] packetData;
                 try
                 {
                     packetData = udpClient.Receive(ref remote);
+                    if (packetData == null)
+                    {
+                        Debug.Log("Packet was null");
+                        continue;
+                    }
                     Packet p = Packet.Deserialise(packetData);
                     if (p is UniqueID p1)
                     {
@@ -75,8 +80,7 @@ public class NetworkManager : MonoBehaviour
                         recivedPacket = true;
                     }
                 }
-                catch { Debug.Log($"Failed to recive data from the remote for {obj.name}"); }
-                
+                catch { Debug.Log($"Failed to recive data from the remote for {obj.name}, {attempts}"); }
             }
             obj.GetComponent<NetworkGameObject>().networkID = newID;
         }
@@ -112,9 +116,9 @@ public class NetworkManager : MonoBehaviour
             {
                 continue;
             }
-            if (p is TransformPacket)
+            if (p is TransformPacket t)
             {
-
+                Debug.Log($"Transform packet recived for {t.entity}");
             }
 
         }

@@ -82,6 +82,18 @@ namespace Server
             List<Connection> connections = new List<Connection>();
             uint UUID = 0;
 
+            TransformPacket dummyPacket = new TransformPacket
+            {
+                entity = ++UUID,
+                transformX = 1.2f,
+                transformY = 2.0f,
+                transformZ = 3.2f,
+
+                rotationX = 1.2f,
+                rotationY = 2.0f,
+                rotationZ = 3.2f,
+            };
+
 
             //server ingests data
 
@@ -137,7 +149,7 @@ namespace Server
                         
                         Console.WriteLine("New connection at " + index + ": " + connections[index].remote.ToString());
                         Console.WriteLine("MSG: ");
-                        Console.WriteLine(Encoding.Unicode.GetString(recieveBuffer));
+                        Console.WriteLine(Encoding.ASCII.GetString(recieveBuffer));
 
                        
                     }
@@ -179,11 +191,17 @@ namespace Server
 
                     }
 
+                    // send the network objects to the clients
+                    // list -> send all at once
+                    // I have object, send object
 
-                    //if (connections[index] != null)
-                    //{
-                    //    connections[index].Send(authPacket, ref localSocket);
-                    //}
+                    if (connections[index] != null)
+                    {
+                        //loop over list of packets to send
+                        
+                        //send all packets
+                        connections[index].Send(dummyPacket, ref localSocket);
+                    }
 
                     found = false;
 

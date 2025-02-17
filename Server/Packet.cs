@@ -120,6 +120,15 @@ namespace Server
                         client = client,
                         unique = id
                     };
+                case PacketType.ReqestJoin:
+                    {
+                        return new RequestID
+                        {
+                            client = client
+                        };
+                    }
+                   
+
 
             }
 

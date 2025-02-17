@@ -35,18 +35,24 @@ using System.Threading.Tasks;
     //serialise (become bytes)
     public void Serialise(out byte[] outData)
         {
-
+            
             MemoryStream ms = new MemoryStream();
             BinaryWriter bw = new BinaryWriter(ms);
             bw.Write(client);
-            if (this is ConnectPacket) { bw.Write((byte)PacketType.Connect); }
-            else if (this is DisconnectPacket) { bw.Write((byte)(PacketType.Disconnect)); }
+            if (this is ConnectPacket) { Debug.Log($"Connect Packet: "); bw.Write((byte)PacketType.Connect); }
+            else if (this is DisconnectPacket) { Debug.Log($"Disconnect Packet: "); bw.Write((byte)(PacketType.Disconnect)); }
             else if (this is DataPacket p)
             {
-                bw.Write((byte)PacketType.Data);
+            Debug.Log($"Data Packet: ");
+ 
+                 bw.Write((byte)PacketType.Data);
                 bw.Write(p.data.Length);
                 bw.Write(p.data);
-
+            }
+            else if (this is RequestJoin)
+            {
+            Debug.Log($"Connect Packet: ");
+            bw.Write((byte)PacketType.ReqestJoin);
             }
 
             outData = ms.ToArray();
