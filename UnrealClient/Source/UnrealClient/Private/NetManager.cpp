@@ -86,7 +86,7 @@ void ANetManager::Tick(float DeltaTime)
 		packetStream.SetNumZeroed(pendingData);
 		socket->Recv(packetStream.GetData(), pendingData, readBytes);
 		Packet packet;
-		packet.Deserilaise(packetStream);
+		packet.deserilaise(packetStream);
 		FString dataOut = FString(UTF8_TO_TCHAR(reinterpret_cast<const char*>(packet.data.GetData())));
 		//packet.data.ToString()
 
@@ -105,7 +105,7 @@ Packet::Packet()
 	length = 0;
 }
 
-void Packet::Deserilaise(TArray<uint8_t> in)
+void Packet::deserilaise(TArray<uint8_t> in)
 {
 	FMemoryReader reader(in);
 	reader.Serialize(&client, sizeof(client));

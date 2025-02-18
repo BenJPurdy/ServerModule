@@ -27,7 +27,7 @@ namespace Server
         //the client wrt the packet is the client itself, not the packet reciever
         //client id can be assigned either by the client or by the server
         public uint client;
-        public uint length;
+        public uint length = 5 * sizeof(byte);
 
         //serialise (become bytes)
         public void Serialise(out byte[] outData)
@@ -48,7 +48,7 @@ namespace Server
             else if (this is TransformPacket p1)
             {
                 bw.Write((byte)PacketType.Transform);
-                bw.Write(32); //length
+                bw.Write(length + 32); //length
                 bw.Write(p1.entity);
                 bw.Write(p1.transformX);
                 bw.Write(p1.transformY);
@@ -63,6 +63,7 @@ namespace Server
             else if (this is UniqueID uID)
             {
                 bw.Write((byte)PacketType.UniqueID);
+                bw.Write(length + 1);
                 bw.Write(uID.unique);
             }
             outData = ms.ToArray();
@@ -77,8 +78,10 @@ namespace Server
             BinaryReader bw = new BinaryReader(ms);
             var client = bw.ReadUInt32();
             byte type = bw.ReadByte();
+            uint l = bw.ReadUInt32();
             switch ((PacketType)type)
             {
+                
                 case PacketType.Connect:
                     return new ConnectPacket
                     {
@@ -91,7 +94,7 @@ namespace Server
                         client = client,
                     };
                 case PacketType.Data:
-                    UInt32 l = bw.ReadUInt32();
+                    
                     return new DataPacket
                     {
                         client = client,

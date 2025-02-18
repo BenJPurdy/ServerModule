@@ -42,8 +42,8 @@ namespace Server
 
         //can use IPAddress.Parse("address_here") to create an IPAddress object for any address)
         //loopback goes to 127.0.0.1 (me, this machine, local address)
-       
 
+        static float x, y = 0;
         static void Main(string[] args)
         {
             /*
@@ -108,6 +108,7 @@ namespace Server
                 
                 while (localSocket.Available > 0)
                 {
+                    //Console.WriteLine("Data in");
                     byte[] recieveBuffer = new byte[1024];
                     var rmt = new IPEndPoint(IPAddress.Any, 0); //the endpoint data comes in to (refered to as the client)
                     EndPoint rmtEndPoint = rmt;
@@ -115,8 +116,10 @@ namespace Server
                     rmt = (IPEndPoint)rmtEndPoint;
                     bool found = false;
                     int index = 0;
-
-                    
+                    x += 0.2f;
+                    y += 0.24f;
+                    dummyPacket.transformX = 1.2f + (float)Math.Sin(x);
+                    dummyPacket.transformY = 3.2f + (float)Math.Cos(y);
 
                     for (int i = 0; i < connections.Count; i++)
                     {
@@ -168,7 +171,7 @@ namespace Server
                                 if (c == null) continue;
                                 if (c.remote.Equals(rmt))
                                 {
-                                    Console.WriteLine("Removed " + c.remote.ToString() + " from connections");
+                                    Console.WriteLine("Removed " + c.remote.ToString() + " from connections at " + i);
                                     connections[i] = null;
                                 }
                             }
@@ -178,11 +181,12 @@ namespace Server
                     }
                     if (inPacket is TransformPacket t)
                     {
-                        Console.WriteLine($"{t.transformX}, {t.transformY}, {t.transformZ}, {t.rotationX}, {t.rotationY}, {t.rotationZ}");
+                        Console.WriteLine($"Entity: {t.entity} Transform: {t.transformX}, {t.transformY}, {t.transformZ}, {t.rotationX}, {t.rotationY}, {t.rotationZ}");
+                        
                     }
                     if (inPacket is RequestID id)
                     {
-                        Console.WriteLine("Data is request ID packet");
+                        //Console.WriteLine("Data is request ID packet");
                         connections[index].Send(new UniqueID(++UUID), ref localSocket);
                     }
                     if (inPacket is DataPacket d)
@@ -200,7 +204,16 @@ namespace Server
                         //loop over list of packets to send
                         
                         //send all packets
+                        
                         connections[index].Send(dummyPacket, ref localSocket);
+                    }
+
+                    foreach (var c in connections)
+                    {
+                        if (c.remote != rmt)
+                        {
+                            c.Send(inPacket, ref localSocket);
+                        }
                     }
 
                     found = false;

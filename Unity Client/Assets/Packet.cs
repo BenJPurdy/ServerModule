@@ -9,9 +9,11 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Security.Cryptography;
+using UnityEditor.PackageManager.Requests;
 
 
-    enum PacketType
+enum PacketType
     {
         Connect,
         Disconnect,
@@ -30,7 +32,7 @@ using System.Threading.Tasks;
         //the client wrt the packet is the client itself, not the packet reciever
         //client id can be assigned either by the client or by the server
         public uint client;
-        public UInt32 length;
+        public uint length = sizeof(uint) + sizeof(byte);
 
     //serialise (become bytes)
     public void Serialise(out byte[] outData)
@@ -54,8 +56,23 @@ using System.Threading.Tasks;
             Debug.Log($"Connect Packet: ");
             bw.Write((byte)PacketType.ReqestJoin);
             }
+        else if (this is TransformPacket p1)
+        {
+            bw.Write((byte)PacketType.Transform);
+            bw.Write(length + 32); //length
+            bw.Write(p1.entity);
+            bw.Write(p1.transformX);
+            bw.Write(p1.transformY);
+            bw.Write(p1.transformZ);
 
-            outData = ms.ToArray();
+            bw.Write(p1.rotationX);
+            bw.Write(p1.rotationY);
+            bw.Write(p1.rotationZ);
+            bw.Write(p1.padding);
+
+        }
+
+        outData = ms.ToArray();
 
         }
 
@@ -67,8 +84,10 @@ using System.Threading.Tasks;
         BinaryReader bw = new BinaryReader(ms);
         var client = bw.ReadUInt32();
         byte type = bw.ReadByte();
+        uint l = bw.ReadUInt32();
         switch ((PacketType)type)
         {
+
             case PacketType.Connect:
                 return new ConnectPacket
                 {
@@ -81,7 +100,7 @@ using System.Threading.Tasks;
                     client = client,
                 };
             case PacketType.Data:
-                UInt32 l = bw.ReadUInt32();
+
                 return new DataPacket
                 {
                     client = client,
@@ -103,14 +122,13 @@ using System.Threading.Tasks;
                     padding = bw.ReadUInt32()
                 };
             case PacketType.UniqueID:
+
+                uint id = bw.ReadUInt32();
+                return new UniqueID
                 {
-                    uint id = bw.ReadUInt32();
-                    return new UniqueID
-                    {
-                        client = client,
-                        unique = id
-                    };
-                }
+                    client = client,
+                    unique = id
+                };
 
 
         }
@@ -138,6 +156,39 @@ using System.Threading.Tasks;
 
     public class TransformPacket : Packet
     {
+        public TransformPacket() 
+        { }
+        public TransformPacket(uint id, Transform t)
+        {
+            entity = id;
+            convertToPacketData(t.position, true);
+            convertToPacketData(t.rotation.eulerAngles, false);
+            length += 8 * sizeof(uint);
+        }
+
+    void convertToPacketData(Vector3 vec, bool isPosition)
+    {
+        if (isPosition)
+        {
+            transformX = vec.x; transformY = vec.y; transformZ = vec.z;
+        }
+        else
+        {
+            rotationX = vec.x; rotationY = vec.y; rotationZ = vec.z;
+        }
+    }
+
+    public Vector3 getPos()
+    {
+        return new Vector3(transformX, transformY, transformZ);
+    }
+
+    public Quaternion getRot()
+    {
+        Quaternion quat = Quaternion.Euler(new Vector3(rotationX, rotationY, rotationZ));
+
+        return quat;
+    }
         public uint entity;
         public float transformX;
         public float transformY;
@@ -146,7 +197,7 @@ using System.Threading.Tasks;
         public float rotationX;
         public float rotationY;
         public float rotationZ;
-        public uint padding;
+        public uint padding = 0;
     }
 
 public class RequestJoin : Packet
