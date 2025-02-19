@@ -4,7 +4,7 @@
 
 #include <array>
 #include "Kismet/GameplayStatics.h"
-#include "NetManager.h"
+
 
 
 
@@ -43,7 +43,8 @@ void UNetworkDispatcher::BeginPlay()
 void UNetworkDispatcher::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	sendData(*manager, *owner);
+	
+	
 
 	
 	// ...

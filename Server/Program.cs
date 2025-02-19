@@ -158,6 +158,10 @@ namespace Server
                     }
 
                     Packet inPacket = Packet.Deserialise(recieveBuffer);
+                    if (inPacket != null)
+                    {
+                        //Console.WriteLine("Packet recived");
+                    }
                     if (inPacket == null)
                     {
                         Console.WriteLine("Data in failed");

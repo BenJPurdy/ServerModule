@@ -8,6 +8,7 @@
 #define PRINT(...) GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Emerald, TEXT(__VA_ARGS__))
 #define PRINTDATA(p) GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, p)
 
+TArray<UNetworkGameObject*> ANetManager::networkObjects;
 
 // Sets default values
 ANetManager::ANetManager()
@@ -29,6 +30,8 @@ void ANetManager::EndPlay(EEndPlayReason::Type t)
 // Called when the game starts or when spawned
 void ANetManager::BeginPlay()
 {
+	networkObjects.Empty();
+	UNetworkGameObject::lastLocalID = 0;
 	//FInternetAddr local = FInternetAddr::SetAnyAddress();
 	FString ipAddr = "127.0.0.1";
 	FIPv4Address::Parse(ipAddr, serverEndPoint);
@@ -59,15 +62,44 @@ void ANetManager::BeginPlay()
 	std::vector<uint8_t> blobData;
 	blobData.resize(dataToSend.Len() + 1);
 	dataToSend.ToBlob(dataToSend, &blobData[0], dataToSend.Len() * sizeof(dataToSend[0]));
-
+	{
 	TArray<uint8_t> sendData;
+	sendData.SetNumZeroed(sizeof(ConnectPacket));
 	FMemoryWriter writer(sendData);
-	writer.Serialize(&dataToSend[0], dataToSend.Len() );
+	Packet connect;
+	auto out = connect.serialise(writer, Packet::PacketType::Connect);
+	//writer.Serialize(&dataToSend[0], dataToSend.Len() );
 
 	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Emerald, TEXT("Socket Complete"));
 	socket->SendTo(&sendData[0], sendData.Num(), dataSent, *sendAddr);
 	PRINT("Sent to server");
+	}
 	//socket->Recv()
+
+	RequestJoinPacket rjp;
+	for (auto& obj : networkObjects)
+	{
+		TArray<uint8_t> sendData, recvData;
+		FMemoryWriter writer(sendData);
+		FMemoryReader reader(recvData);
+		reader.Serialize((void*)0, sizeof(int));
+		rjp.serialise(writer, Packet::PacketType::RequestJoin);
+		int sent = send(sendData);
+		UE_LOG(LogTemp, Log, TEXT("%s sent %i bytes"), *obj->owner->GetName(), sent);
+		uint32_t incomingSize = 0;
+		int32_t readBytes = 0;
+		socket->HasPendingData(incomingSize);
+		recvData.SetNumZeroed(incomingSize);
+		socket->Recv(recvData.GetData(), incomingSize, readBytes);
+		Packet inPacket;
+		uint32_t client;
+		uint8_t type;
+		reader.Serialize(&client, sizeof(client));
+		reader.Serialize(&type, sizeof(type));
+
+		inPacket.deserilaise(reader, (Packet::PacketType)type);
+		obj->networkID = inPacket.UniqueID;
+	}
 
 	Super::BeginPlay();
 	
@@ -91,57 +123,49 @@ void ANetManager::Tick(float DeltaTime)
 		//packet.data.ToString()
 
 		UE_LOG(LogTemp, Warning, TEXT("Return Data: %s"), *dataOut);
-		
-		
+	}
+
+	{
+		for (auto& obj : networkObjects)
+		{
+			if (obj->isLocal && obj->networkID == 0)
+			{
+				RequestJoinPacket rjp;
+				TArray<uint8_t> sendData, recvData;
+				FMemoryWriter writer(sendData);
+				FMemoryReader reader(recvData);
+				reader.Serialize((void*)0, sizeof(int));
+				rjp.serialise(writer, Packet::PacketType::RequestJoin);
+				int sent = send(sendData);
+				uint32_t incomingSize = 0;
+				int32_t readBytes2 = 0;
+				socket->HasPendingData(incomingSize);
+				recvData.SetNumZeroed(incomingSize);
+				socket->Recv(recvData.GetData(), incomingSize, readBytes2);
+				Packet inPacket;
+				uint32_t client;
+				uint8_t type;
+				reader.Serialize(&client, sizeof(client));
+				reader.Serialize(&type, sizeof(type));
+				auto deserialisedPacket = inPacket.deserilaise(reader, (Packet::PacketType)type);
+				UniqueIDPacket* uidpacket = (UniqueIDPacket*)deserialisedPacket;
+				obj->networkID = uidpacket->unique;
+
+			}
+			TArray<uint8_t> sendData;
+			int32_t dataSent = 0;
+			FMemoryWriter writer(sendData);
+			writer.Serialize(&dataSent, sizeof(uint32_t));
+			obj->transformPacket.serialise(writer, Packet::PacketType::Transform);
+			socket->SendTo(&sendData[0], sendData.Num(), dataSent, *serverAddress);
+			UE_LOG(LogTemp, Log, TEXT("%i"), dataSent);
+		}
 	}
 
 	Super::Tick(DeltaTime);
 }
 
-Packet::Packet()
-{
-	client = 0;
-	type = 2;
-	length = 0;
-}
 
-void Packet::deserilaise(TArray<uint8_t> in)
-{
-	FMemoryReader reader(in);
-	reader.Serialize(&client, sizeof(client));
-	reader.Serialize(&type, sizeof(type));
-	reader.Serialize(&length, sizeof(length));
-	data.SetNumZeroed(length);
-	reader.Serialize(data.GetData(), length);
-}
-
-uint32_t Packet::serialise(TArray<uint8_t>& out)
-{
-	FMemoryWriter writer(out);
-	writer.Serialize(&client, sizeof(client));
-	writer.Serialize(&type, sizeof(type));
-	writer.Serialize(&length, sizeof(length));
-	writer.Serialize(data.GetData(), length);
-	return (uint32_t)(sizeof(client) + sizeof(type) + sizeof(length) + length);
-}
-
-void Packet::addFloat(float v)
-{
-	std::array<uint8_t, 4> bytes = std::bit_cast<std::array<uint8_t, 4>>(v);
-	for (auto i : bytes)
-	{
-		data.Add(i);
-		length += sizeof(uint8_t);
-	}
-}
-
-void Packet::addVec3(FVector v)
-{
-	addFloat(v.X);
-	addFloat(v.Y);
-	addFloat(v.Z);
-	
-}
 
 
 
