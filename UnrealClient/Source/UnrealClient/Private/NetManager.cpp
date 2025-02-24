@@ -20,6 +20,15 @@ ANetManager::ANetManager()
 
 void ANetManager::EndPlay(EEndPlayReason::Type t)
 {
+	UNetworkGameObject::lastLocalID = 0;
+	Packet dc;
+	TArray<uint8_t> dcData;
+	FMemoryWriter dcWriter(dcData);
+	dcWriter.Serialize(&localEndPoint, sizeof(FIPv4Address));
+	dc.serialise(dcWriter, Packet::PacketType::Disconnect);
+	
+	send(dcData);
+	
 	if (socket)
 	{
 		socket->Close();
@@ -82,7 +91,7 @@ void ANetManager::BeginPlay()
 		TArray<uint8_t> sendData, recvData;
 		FMemoryWriter writer(sendData);
 		FMemoryReader reader(recvData);
-		reader.Serialize((void*)0, sizeof(int));
+		writer.Serialize(&localEndPoint, sizeof(localEndPoint));
 		rjp.serialise(writer, Packet::PacketType::RequestJoin);
 		int sent = send(sendData);
 		UE_LOG(LogTemp, Log, TEXT("%s sent %i bytes"), *obj->owner->GetName(), sent);
@@ -112,18 +121,24 @@ void ANetManager::Tick(float DeltaTime)
 	uint32_t pendingData = 0;
 	int32_t readBytes = 0;
 	//uint8_t* inData;
-	if (socket->HasPendingData(pendingData))
-	{
-		TArray<uint8_t> packetStream;
-		packetStream.SetNumZeroed(pendingData);
-		socket->Recv(packetStream.GetData(), pendingData, readBytes);
-		Packet packet;
-		packet.deserilaise(packetStream);
-		FString dataOut = FString(UTF8_TO_TCHAR(reinterpret_cast<const char*>(packet.data.GetData())));
-		//packet.data.ToString()
-
-		UE_LOG(LogTemp, Warning, TEXT("Return Data: %s"), *dataOut);
-	}
+	//if (socket->HasPendingData(pendingData))
+	//{
+	//	TArray<uint8_t> packetStream;
+	//	FMemoryReader reader(packetStream);
+	//	packetStream.SetNumZeroed(pendingData);
+	//	socket->Recv(packetStream.GetData(), pendingData, readBytes);
+	//	uint32_t client;
+	//	uint8_t type;
+	//	reader.Serialize(&client, sizeof(uint32_t));
+	//	reader.Serialize(&type, sizeof(uint8_t));
+	//	Packet packet;
+	//	auto p = packet.deserilaise(reader, (Packet::PacketType)type);
+	//
+	//	//FString dataOut = FString(UTF8_TO_TCHAR(reinterpret_cast<const char*>(packet.data.GetData())));
+	//	//packet.data.ToString()
+	//
+	//	//UE_LOG(LogTemp, Warning, TEXT("Return Data: %s"), *dataOut);
+	//}
 
 	{
 		for (auto& obj : networkObjects)
@@ -132,14 +147,20 @@ void ANetManager::Tick(float DeltaTime)
 			{
 				RequestJoinPacket rjp;
 				TArray<uint8_t> sendData, recvData;
+				//sendData.Reserve(sizeof(RequestJoinPacket));
 				FMemoryWriter writer(sendData);
 				FMemoryReader reader(recvData);
-				reader.Serialize((void*)0, sizeof(int));
+				writer.Serialize(&localEndPoint, sizeof(localEndPoint));
 				rjp.serialise(writer, Packet::PacketType::RequestJoin);
 				int sent = send(sendData);
+				UE_LOG(LogTemp, Log, TEXT("%s sent %i bytes"), *obj->owner->GetName(), sent);
 				uint32_t incomingSize = 0;
 				int32_t readBytes2 = 0;
 				socket->HasPendingData(incomingSize);
+				//while (incomingSize == 0)
+				//{
+				//	socket->HasPendingData(incomingSize);
+				//}
 				recvData.SetNumZeroed(incomingSize);
 				socket->Recv(recvData.GetData(), incomingSize, readBytes2);
 				Packet inPacket;
@@ -149,6 +170,7 @@ void ANetManager::Tick(float DeltaTime)
 				reader.Serialize(&type, sizeof(type));
 				auto deserialisedPacket = inPacket.deserilaise(reader, (Packet::PacketType)type);
 				UniqueIDPacket* uidpacket = (UniqueIDPacket*)deserialisedPacket;
+				if (uidpacket == nullptr) { UE_LOG(LogTemp, Error, TEXT("UIDPacket was null")); break; }
 				obj->networkID = uidpacket->unique;
 
 			}
@@ -158,7 +180,7 @@ void ANetManager::Tick(float DeltaTime)
 			writer.Serialize(&dataSent, sizeof(uint32_t));
 			obj->transformPacket.serialise(writer, Packet::PacketType::Transform);
 			socket->SendTo(&sendData[0], sendData.Num(), dataSent, *serverAddress);
-			UE_LOG(LogTemp, Log, TEXT("%i"), dataSent);
+			//UE_LOG(LogTemp, Log, TEXT("%i"), dataSent);
 		}
 	}
 

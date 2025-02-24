@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Server
 {
-    enum PacketType
+    enum PacketType : byte
     {
         Connect,
         Disconnect,
@@ -27,7 +27,7 @@ namespace Server
         //the client wrt the packet is the client itself, not the packet reciever
         //client id can be assigned either by the client or by the server
         public uint client;
-        public uint length = 5 * sizeof(byte);
+        public uint length = sizeof(uint) + sizeof(byte) + sizeof(uint);
 
         //serialise (become bytes)
         public void Serialise(out byte[] outData)
@@ -63,7 +63,7 @@ namespace Server
             else if (this is UniqueID uID)
             {
                 bw.Write((byte)PacketType.UniqueID);
-                bw.Write(length + 1);
+                bw.Write(length + sizeof(uint));
                 bw.Write(uID.unique);
             }
             outData = ms.ToArray();

@@ -19,12 +19,12 @@ class UNREALCLIENT_API UNetworkGameObject : public UActorComponent
 public:	
 	// Sets default values for this component's properties
 	UNetworkGameObject();
-	UPROPERTY(EditAnywhere);
-	bool isLocal = false;
-	UPROPERTY(EditAnywhere);
-	uint32 networkID = 0;
-	UPROPERTY(EditAnywhere);
-	uint32 localID = 0;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool isLocal = true;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 networkID = 0;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 localID = 0;
 	AActor* owner;
 	static uint32 lastLocalID;
 

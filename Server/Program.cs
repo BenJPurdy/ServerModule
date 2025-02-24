@@ -191,6 +191,7 @@ namespace Server
                     if (inPacket is RequestID id)
                     {
                         //Console.WriteLine("Data is request ID packet");
+                        Console.WriteLine("Uinque ID Requested for client networkedGameObject");
                         connections[index].Send(new UniqueID(++UUID), ref localSocket);
                     }
                     if (inPacket is DataPacket d)
@@ -209,7 +210,7 @@ namespace Server
                         
                         //send all packets
                         
-                        connections[index].Send(dummyPacket, ref localSocket);
+                        //connections[index].Send(dummyPacket, ref localSocket);
                     }
 
                     foreach (var c in connections)

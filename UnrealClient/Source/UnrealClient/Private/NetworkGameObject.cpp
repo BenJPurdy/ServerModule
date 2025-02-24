@@ -45,7 +45,7 @@ void UNetworkGameObject::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	
-	transformPacket.makeTransformPacket(owner);
+	transformPacket.makeTransformPacket(owner, networkID);
 
 	// ...
 }

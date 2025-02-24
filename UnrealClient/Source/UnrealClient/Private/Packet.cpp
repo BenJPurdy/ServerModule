@@ -63,13 +63,23 @@ uint32_t Packet::serialise(FMemoryWriter& writer, PacketType packetType)
 		TransformPacket* tmp = (TransformPacket*)this;
 		swizzleToUnity(tmp->position);
 		swizzleToUnity(tmp->rotation);
+		writer.Serialize(&tmp->entity, sizeof(uint32_t));
 		writer.Serialize(&tmp->position, sizeof(FVector3f));
 		writer.Serialize(&tmp->rotation, sizeof(FVector3f));
+		writer.Serialize(&tmp->padding, sizeof(uint32_t));
 		return 1;
 	}
 	case PacketType::Connect:
 	{
 		PacketType t = PacketType::Connect;
+		uint32_t length = sizeof(uint32_t) + sizeof(PacketType) + sizeof(uint32_t);
+		writer.Serialize(&length, sizeof(length));
+		writer.Serialize(&t, sizeof(PacketType));
+		return 1;
+	}
+	case PacketType::Disconnect:
+	{
+		PacketType t = PacketType::Disconnect;
 		writer.Serialize(&t, sizeof(PacketType));
 		return 1;
 	}

@@ -33,6 +33,7 @@ public:
 
 	void deserilaise(TArray<uint8_t>);
 	Packet* deserilaise(FMemoryReader& reader, PacketType packetType);
+	
 
 	uint32_t serialise(FMemoryWriter& writer, PacketType packetType);
 	//uint32_t serialise(FMemoryWriter&, Packet*);
@@ -52,8 +53,10 @@ public:
 class TransformPacket : public Packet
 {
 public:
+	uint32_t entity;
 	FVector3f position{ 0.0f, 0.0f, 0.0f };
 	FVector3f rotation{ 0.0f, 0.0f, 0.0f };
+	uint32_t padding = 0;
 
 	//void deserialise(TArray<uint8_t> in)
 	//{
@@ -76,8 +79,10 @@ public:
 	//	writer.Serialize(&rotation, sizeof(FVector3f));
 	//}
 
-	void makeTransformPacket(AActor* actor)
+	void makeTransformPacket(AActor* actor, uint32_t id)
 	{
+		UE_LOG(LogTemp, Log, TEXT("local actor with id %i emitting transform packet"), id);
+		entity = id;
 		position = (FVector3f)actor->GetActorLocation();
 		rotation = (FVector3f)actor->GetActorTransform().GetRotation().Euler();
 	}
@@ -110,6 +115,8 @@ public:
 		type = PacketType::Connect;
 	}
 };
+
+
 
 static void swizzleFromUnity(FVector3f& unityVector)
 {
