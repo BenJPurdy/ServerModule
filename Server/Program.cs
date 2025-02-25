@@ -197,7 +197,6 @@ namespace Server
                     if (inPacket is DataPacket d)
                     {
                         Console.WriteLine(d.data);
-
                     }
 
                     // send the network objects to the clients

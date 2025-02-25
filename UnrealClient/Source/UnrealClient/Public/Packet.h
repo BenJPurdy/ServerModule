@@ -84,7 +84,8 @@ public:
 		UE_LOG(LogTemp, Log, TEXT("local actor with id %i emitting transform packet"), id);
 		entity = id;
 		position = (FVector3f)actor->GetActorLocation();
-		rotation = (FVector3f)actor->GetActorTransform().GetRotation().Euler();
+		rotation = (FVector3f)actor->GetActorTransform().GetRotation().Euler().RadiansToDegrees(
+			actor->GetActorTransform().GetRotation().Euler());
 	}
 };
 

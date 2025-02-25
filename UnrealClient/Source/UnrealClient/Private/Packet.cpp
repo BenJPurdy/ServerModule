@@ -72,8 +72,8 @@ uint32_t Packet::serialise(FMemoryWriter& writer, PacketType packetType)
 	case PacketType::Connect:
 	{
 		PacketType t = PacketType::Connect;
-		uint32_t length = sizeof(uint32_t) + sizeof(PacketType) + sizeof(uint32_t);
-		writer.Serialize(&length, sizeof(length));
+		uint32_t l = sizeof(uint32_t) + sizeof(PacketType) + sizeof(uint32_t);
+		writer.Serialize(&l, sizeof(l));
 		writer.Serialize(&t, sizeof(PacketType));
 		return 1;
 	}

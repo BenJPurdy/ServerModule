@@ -21,7 +21,7 @@ UNetworkDispatcher::UNetworkDispatcher()
 	owner = GetOwner();
 	if (manager != nullptr)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Found actor"));
+		//UE_LOG(LogTemp, Warning, TEXT("Found actor"));
 	}
 	
 	// ...
