@@ -15,7 +15,11 @@
 #include "GameFramework/Actor.h"
 #include "NetManager.generated.h"
 
-
+enum NetworkGameObjectType : uint32_t
+{
+	Player,
+	Bullet,
+};
 
 
 
@@ -36,6 +40,7 @@ public:
 	FSocket* socket;
 
 	static TArray<UNetworkGameObject*> networkObjects;
+	TSubclassOf<AActor> networkPlayerClass;
 	
 	//network manager has (Packet*)deserialise which will make a memoryreader
 	//this then determins the type of incoming packet
@@ -72,6 +77,12 @@ private:
 		int ret = 0;
 		socket->SendTo(&data[0], data.Num(), ret, *serverAddress);
 		return ret;
+	}
+
+	void spawnNewNetworkGameObject(NetworkGameObjectType, TransformPacket&);
+	void spawnNewNetworkGameObject(TransformPacket& tp)
+	{
+		spawnNewNetworkGameObject((NetworkGameObjectType)tp.padding, tp);
 	}
 
 };

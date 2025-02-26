@@ -24,6 +24,7 @@ public:
 	};
 
 	Packet();
+	virtual ~Packet() = default;
 
 
 	//void Serialise(TArray<uint8_t>* out)
@@ -32,7 +33,7 @@ public:
 	//}
 
 	void deserilaise(TArray<uint8_t>);
-	Packet* deserilaise(FMemoryReader& reader, PacketType packetType);
+	static Packet* deserilaise(FMemoryReader& reader, PacketType packetType);
 	
 
 	uint32_t serialise(FMemoryWriter& writer, PacketType packetType);

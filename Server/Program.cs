@@ -17,6 +17,7 @@ using System.Diagnostics;
 namespace Server
 {
 
+    
     public struct Vec3
     {
         public float x, y, z;
@@ -34,6 +35,7 @@ namespace Server
 
     internal class Program
     {
+
         static void WriteLn(System.String iStr)
         {
             Console.WriteLine(iStr);
@@ -177,6 +179,7 @@ namespace Server
                                 {
                                     Console.WriteLine("Removed " + c.remote.ToString() + " from connections at " + i);
                                     connections[i] = null;
+                                    return;
                                 }
                             }
                         }
@@ -184,9 +187,9 @@ namespace Server
                         //Console.WriteLine(authPacket.data);
                     }
                     if (inPacket is TransformPacket t)
-                    {
-                        Console.WriteLine($"Entity: {t.entity} Transform: {t.transformX}, {t.transformY}, {t.transformZ}, {t.rotationX}, {t.rotationY}, {t.rotationZ}");
-                        
+                    {                        
+                        Console.Write($"Entity: {t.entity} Transform: {t.transformX}, {t.transformY}, {t.transformZ}, {t.rotationX}, {t.rotationY}, {t.rotationZ}\n");
+
                     }
                     if (inPacket is RequestID id)
                     {
@@ -209,7 +212,7 @@ namespace Server
                         
                         //send all packets
                         
-                        //connections[index].Send(dummyPacket, ref localSocket);
+                        connections[index].Send(dummyPacket, ref localSocket);
                     }
 
                     foreach (var c in connections)

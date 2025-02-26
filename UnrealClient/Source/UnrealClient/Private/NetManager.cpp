@@ -16,6 +16,20 @@ ANetManager::ANetManager()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	static ConstructorHelpers::FClassFinder<AActor> findActor(
+		TEXT("/Game/ThirdPerson/Blueprints/NetworkPlayer")
+	);
+	if (findActor.Succeeded())
+	{
+		//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Emerald, TEXT("Found networkPlayer"));
+		networkPlayerClass = findActor.Class;
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Blue, TEXT("Failed to find networkPlayer"));
+	}
+	
+
 }
 
 void ANetManager::EndPlay(EEndPlayReason::Type t)
@@ -41,6 +55,11 @@ void ANetManager::BeginPlay()
 {
 	networkObjects.Empty();
 	UNetworkGameObject::lastLocalID = 0;
+
+	
+
+
+
 	//FInternetAddr local = FInternetAddr::SetAnyAddress();
 	FString ipAddr = "127.0.0.1";
 	FIPv4Address::Parse(ipAddr, serverEndPoint);
@@ -177,14 +196,70 @@ void ANetManager::Tick(float DeltaTime)
 			TArray<uint8_t> sendData;
 			int32_t dataSent = 0;
 			FMemoryWriter writer(sendData);
-			writer.Serialize(&dataSent, sizeof(uint32_t));
+			writer.Serialize(&dataSent, sizeof(uint32_t)); //stand in for a client address here
 			obj->transformPacket.serialise(writer, Packet::PacketType::Transform);
 			socket->SendTo(&sendData[0], sendData.Num(), dataSent, *serverAddress);
-			//UE_LOG(LogTemp, Log, TEXT("%i"), dataSent);
+			dataSent = 0;
+			sendData.SetNum(1024);
+			socket->Recv(&sendData[0], 1024, dataSent);
+			if (dataSent > 0)
+			{
+				sendData.SetNumZeroed(dataSent);
+				FMemoryReader reader(sendData);
+				uint32_t addr;
+				reader.Serialize(&addr, sizeof(uint32_t));
+				Packet::PacketType pt;
+				reader.Serialize(&pt, sizeof(Packet::PacketType));
+				uint32_t size;
+				reader.Serialize(&size, sizeof(uint32_t));
+				Packet* inPacket = Packet::deserilaise(reader, pt);
+				if (inPacket)
+				{
+					if (inPacket->type == Packet::PacketType::Transform)
+					{
+						TransformPacket* tp = (TransformPacket*)inPacket;
+						bool found = false;
+						for (auto& o : networkObjects)
+						{
+							if (o->networkID == tp->entity)
+							{
+								found = true;
+								obj->owner->SetActorLocation(FVector(tp->position));
+								obj->owner->SetActorRotation(FQuat{ tp->rotation.ToOrientationQuat() });
+							}
+						}
+						if (!found)
+						{
+							spawnNewNetworkGameObject(*tp);
+						}
+					}
+				}
+				
+
+				
+				
+				delete inPacket;
+
+			}
+			
 		}
 	}
 
 	Super::Tick(DeltaTime);
+}
+
+void ANetManager::spawnNewNetworkGameObject(NetworkGameObjectType t, TransformPacket& tp)
+{
+	auto* a = GetWorld()->SpawnActor(networkPlayerClass);
+	
+	UNetworkGameObject* ngo = a->GetComponentByClass<UNetworkGameObject>();
+	ngo->isLocal = false;
+	ngo->owner = a;
+	ngo->networkID = tp.entity;
+	a->SetActorLocation(FVector(tp.position));
+	a->SetActorRotation(FQuat{ tp.rotation.ToOrientationQuat() });
+	networkObjects.Add(ngo);
+	
 }
 
 

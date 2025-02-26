@@ -99,26 +99,28 @@ Packet* Packet::deserilaise(FMemoryReader& reader, PacketType packetType)
 	{
 	case PacketType::Transform:
 	{
+		uint32_t e, t;
 		FVector3f p, r;
+		reader.Serialize(&e, sizeof(uint32_t));
 		reader.Serialize(&p, sizeof(FVector3f));
 		reader.Serialize(&r, sizeof(FVector3f));
+		reader.Serialize(&t, sizeof(uint32_t));
 		swizzleFromUnity(p);
 		swizzleFromUnity(r);
-
-		return new TransformPacket
-		{
-			.position = p,
-			.rotation = r
-		};
+		TransformPacket* tp = new TransformPacket;
+		tp->entity = e;
+		tp->position = p;
+		tp->rotation = r;
+		tp->padding = t;
+		return tp;
 	}
 	case PacketType::UniqueID:
 	{
 		uint32_t u;
 		reader.Serialize(&u, sizeof(uint32_t));
-		return new UniqueIDPacket
-		{
-			.unique = u
-		};
+		UniqueIDPacket* uIDp = new UniqueIDPacket;
+		uIDp->unique = u;
+		return uIDp;
 	}
 
 
