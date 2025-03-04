@@ -188,7 +188,7 @@ namespace Server
                     }
                     if (inPacket is TransformPacket t)
                     {                        
-                        Console.Write($"Entity: {t.entity} Transform: {t.transformX}, {t.transformY}, {t.transformZ}, {t.rotationX}, {t.rotationY}, {t.rotationZ}\n");
+                        //Console.Write($"Entity: {t.entity} Transform: {t.transformX}, {t.transformY}, {t.transformZ}, {t.rotationX}, {t.rotationY}, {t.rotationZ}\n");
 
                     }
                     if (inPacket is RequestID id)

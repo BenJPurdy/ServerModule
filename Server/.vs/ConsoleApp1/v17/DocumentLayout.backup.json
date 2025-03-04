@@ -32,7 +32,7 @@
               "RelativeDocumentMoniker": "Program.cs",
               "ToolTip": "C:\\Users\\purdyb\\Documents\\GitHub\\6018-MAKING-A-SERVER\\Server\\Program.cs",
               "RelativeToolTip": "Program.cs",
-              "ViewState": "AgIAANAAAAAAAAAAAAAcwNkAAAAyAAAAAAAAAA==",
+              "ViewState": "AgIAALUAAAAAAAAAAAAcwL0AAAAtAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-01-20T12:00:19.484Z",
               "EditorCaption": ""
@@ -47,8 +47,7 @@
               "RelativeToolTip": "Packet.cs",
               "ViewState": "AgIAAB8AAAAAAAAAAAASwDAAAAANAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-01-27T11:22:25.267Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-01-27T11:22:25.267Z"
             },
             {
               "$type": "Document",
@@ -60,8 +59,7 @@
               "RelativeToolTip": "Connection.cs",
               "ViewState": "AgIAABQAAAAAAAAAAAAiwAwAAAAcAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-01-22T12:19:24.121Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-01-22T12:19:24.121Z"
             }
           ]
         }
