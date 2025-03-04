@@ -193,57 +193,72 @@ void ANetManager::Tick(float DeltaTime)
 				obj->networkID = uidpacket->unique;
 
 			}
-			TArray<uint8_t> sendData;
-			int32_t dataSent = 0;
-			FMemoryWriter writer(sendData);
-			writer.Serialize(&dataSent, sizeof(uint32_t)); //stand in for a client address here
-			obj->transformPacket.serialise(writer, Packet::PacketType::Transform);
-			socket->SendTo(&sendData[0], sendData.Num(), dataSent, *serverAddress);
-			dataSent = 0;
-			sendData.SetNum(1024);
-			socket->Recv(&sendData[0], 1024, dataSent);
-			if (dataSent > 0)
+			if (obj->isLocal)
 			{
-				sendData.SetNumZeroed(dataSent);
-				FMemoryReader reader(sendData);
-				uint32_t addr;
-				reader.Serialize(&addr, sizeof(uint32_t));
-				Packet::PacketType pt;
-				reader.Serialize(&pt, sizeof(Packet::PacketType));
-				uint32_t size;
-				reader.Serialize(&size, sizeof(uint32_t));
-				Packet* inPacket = Packet::deserilaise(reader, pt);
-				if (inPacket)
-				{
-					if (inPacket->type == Packet::PacketType::Transform)
-					{
-						TransformPacket* tp = (TransformPacket*)inPacket;
-						bool found = false;
-						for (auto& o : networkObjects)
-						{
-							if (o->networkID == tp->entity)
-							{
-								found = true;
-								obj->owner->SetActorLocation(FVector(tp->position));
-								obj->owner->SetActorRotation(FQuat{ tp->rotation.ToOrientationQuat() });
-							}
-						}
-						if (!found)
-						{
-							spawnNewNetworkGameObject(*tp);
-						}
-					}
-				}
-				
-
-				
-				
-				delete inPacket;
-
+				TArray<uint8> sendData;
+				int32_t dataSent = 0;
+				FMemoryWriter writer(sendData);
+				writer.Serialize(&dataSent, sizeof(uint32_t)); //stand in for a client address here
+				obj->transformPacket.serialise(writer, Packet::PacketType::Transform);
+				socket->SendTo(&sendData[0], sendData.Num(), dataSent, *serverAddress);
+				dataSent = 0;
 			}
 			
+			//sendData.SetNum(1024);
 		}
 	}
+
+	uint32_t recvCount = 0;
+	if (socket->HasPendingData(recvCount))
+	{
+		int tempDataIn = 0;
+		TArray<uint8> recvData;
+		FMemoryReader reader(recvData);
+		recvData.SetNumZeroed(1024);
+		socket->Recv(&recvData[0], 1024, tempDataIn);
+		reader.Seek(0);
+		uint32_t addr;
+		reader.Serialize(&addr, sizeof(uint32_t));
+		if (reader.GetError())
+		{
+			UE_LOG(LogTemp, Error, TEXT("Serialise Error:"));
+		}
+		Packet::PacketType pt;
+		reader.Serialize(&pt, sizeof(Packet::PacketType));
+		uint32_t size;
+		reader.Serialize(&size, sizeof(uint32_t));
+		Packet* inPacket = Packet::deserilaise(reader, pt);
+		if (inPacket)
+		{
+			if (inPacket->type == Packet::PacketType::Transform)
+			{
+				TransformPacket* tp = (TransformPacket*)inPacket;
+				bool found = false;
+				for (auto& o : networkObjects)
+				{
+					if (o->networkID == tp->entity)
+					{
+						UE_LOG(LogTemp, Log, TEXT("Found entity for id %i"), tp->entity);
+						found = true;
+						o->owner->SetActorLocation(FVector(tp->position));
+						o->owner->SetActorRotation(FQuat{ tp->rotation.ToOrientationQuat() });
+					}
+				}
+				if (!found)
+				{
+					spawnNewNetworkGameObject(Player, *tp);
+				}
+			}
+		}
+
+
+
+
+		delete inPacket;
+
+		
+	}
+	
 
 	Super::Tick(DeltaTime);
 }

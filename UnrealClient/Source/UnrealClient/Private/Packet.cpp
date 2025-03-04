@@ -108,6 +108,7 @@ Packet* Packet::deserilaise(FMemoryReader& reader, PacketType packetType)
 		swizzleFromUnity(p);
 		swizzleFromUnity(r);
 		TransformPacket* tp = new TransformPacket;
+		tp->type = Packet::PacketType::Transform;
 		tp->entity = e;
 		tp->position = p;
 		tp->rotation = r;

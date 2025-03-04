@@ -82,7 +82,7 @@ public:
 
 	void makeTransformPacket(AActor* actor, uint32_t id)
 	{
-		UE_LOG(LogTemp, Log, TEXT("local actor with id %i emitting transform packet"), id);
+		//UE_LOG(LogTemp, Log, TEXT("local actor with id %i emitting transform packet"), id);
 		entity = id;
 		position = (FVector3f)actor->GetActorLocation();
 		rotation = (FVector3f)actor->GetActorTransform().GetRotation().Euler().RadiansToDegrees(

@@ -212,12 +212,12 @@ namespace Server
                         
                         //send all packets
                         
-                        connections[index].Send(dummyPacket, ref localSocket);
+                        //connections[index].Send(dummyPacket, ref localSocket);
                     }
 
                     foreach (var c in connections)
                     {
-                        if (c.remote != rmt)
+                        if (!(c.remote.Equals(rmt)))
                         {
                             c.Send(inPacket, ref localSocket);
                         }
