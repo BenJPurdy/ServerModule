@@ -33,6 +33,7 @@ public:
 	virtual void shoot()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Shot Fired"));
+		
 	}
 
 	// Called every frame

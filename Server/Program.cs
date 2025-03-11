@@ -11,6 +11,8 @@ using System.Threading;
 using System.IO;
 using System.Numerics;
 using System.Diagnostics;
+using System.Security.Permissions;
+using ConsoleApp1;
 
 
 
@@ -21,6 +23,12 @@ namespace Server
     public struct Vec3
     {
         public float x, y, z;
+        public Vec3(float _x, float _y, float _z)
+        {
+            x = _x;
+            y = _y;
+            z = _z;
+        }
 
         public void Print()
         {
@@ -35,6 +43,8 @@ namespace Server
 
     internal class Program
     {
+
+        static GameState gameState;
 
         static void WriteLn(System.String iStr)
         {
@@ -66,6 +76,7 @@ namespace Server
             localSocket.Bind(localEndPoint);
 
             Console.WriteLine("Socket Open");
+            gameState.resetFlagState();
 
             var remoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
             var REndPoint = (EndPoint)remoteEndPoint;
@@ -187,9 +198,13 @@ namespace Server
                         //Console.WriteLine(authPacket.data);
                     }
                     if (inPacket is TransformPacket t)
-                    {                        
+                    {
                         //Console.Write($"Entity: {t.entity} Transform: {t.transformX}, {t.transformY}, {t.transformZ}, {t.rotationX}, {t.rotationY}, {t.rotationZ}\n");
-
+                        if (gameState.flagState.currentOwner == t.entity)
+                        {
+                            Vec3 newPos = new Vec3(t.transformX, t.transformY, t.transformZ);
+                            gameState.updateFlagState(newPos);
+                        }
                     }
                     if (inPacket is RequestID id)
                     {
