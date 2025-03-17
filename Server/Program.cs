@@ -76,7 +76,7 @@ namespace Server
             localSocket.Bind(localEndPoint);
 
             Console.WriteLine("Socket Open");
-            gameState.resetFlagState();
+            //gameState.resetFlagState();
 
             var remoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
             var REndPoint = (EndPoint)remoteEndPoint;
@@ -200,11 +200,11 @@ namespace Server
                     if (inPacket is TransformPacket t)
                     {
                         //Console.Write($"Entity: {t.entity} Transform: {t.transformX}, {t.transformY}, {t.transformZ}, {t.rotationX}, {t.rotationY}, {t.rotationZ}\n");
-                        if (gameState.flagState.currentOwner == t.entity)
-                        {
-                            Vec3 newPos = new Vec3(t.transformX, t.transformY, t.transformZ);
-                            gameState.updateFlagState(newPos);
-                        }
+                        //if (gameState.flagState.currentOwner == t.entity)
+                        //{
+                        //    Vec3 newPos = new Vec3(t.transformX, t.transformY, t.transformZ);
+                        //    gameState.updateFlagState(newPos);
+                        //}
                     }
                     if (inPacket is RequestID id)
                     {
