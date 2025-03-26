@@ -232,7 +232,7 @@ namespace Server
 
                     foreach (var c in connections)
                     {
-                        if (!(c.remote.Equals(rmt)))
+                        if (!(c.remote.Equals(rmt)) && (c != null))
                         {
                             c.Send(inPacket, ref localSocket);
                         }
